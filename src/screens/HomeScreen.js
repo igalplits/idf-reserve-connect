@@ -92,10 +92,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    
   },
   searchBar: {
     margin: 16,
     elevation: 4,
+    marginTop: 60,
+    
   },
   feed: {
     padding: 16,

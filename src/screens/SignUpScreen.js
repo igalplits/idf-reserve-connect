@@ -145,9 +145,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    
   },
   formContainer: {
     padding: 20,
+    
   },
   title: {
     fontSize: 24,
@@ -155,6 +157,7 @@ const styles = StyleSheet.create({
     color: '#1a237e',
     marginBottom: 20,
     textAlign: 'center',
+    marginTop: 50,
   },
   input: {
     marginBottom: 16,
