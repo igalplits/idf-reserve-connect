@@ -6,6 +6,10 @@ import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ChatScreen from '../screens/ChatScreen';
+import AddPostScreen from '../screens/AddPostScreen';
+import PostDetailsScreen from '../screens/PostDetailsScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
+import TabNavigator from './TabNavigator'; 
 
 const Stack = createNativeStackNavigator();
 
@@ -23,10 +27,14 @@ const AppNavigator = () => {
           component={SignUpScreen} 
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="Main" component={TabNavigator} />
         <Stack.Screen 
           name="Home" 
           component={HomeScreen}
-          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="AddPost" 
+          component={AddPostScreen}
         />
         <Stack.Screen 
           name="Chat" 
@@ -36,6 +44,8 @@ const AppNavigator = () => {
             headerShown: true 
           })}
         />
+        <Stack.Screen name="PostDetails" component={PostDetailsScreen} />
+        <Stack.Screen name="UserProfile" component={UserProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

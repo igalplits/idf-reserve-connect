@@ -1,88 +1,160 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
-import { Searchbar, Text, Card, Avatar } from 'react-native-paper';
-import { mockPosts, mockUsers } from '../data/mockData';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, FlatList, Image, TextInput } from 'react-native';
+import { Card, Text, Button, Searchbar } from 'react-native-paper';
+import { FAB } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
-const HomeScreen = ({ navigation }) => {
+const HomeScreen = () => {
+  const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredPosts, setFilteredPosts] = useState(mockPosts);
+
+  const navigation = useNavigation();
+
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+  
+      const postsResponse = await fetch('http://192.168.1.16:5000/api/posts');
+      const postsData = await postsResponse.json();
+  
+      const userImageCache = {}; // to avoid duplicate fetches
+  
+      const postsWithProfile = await Promise.all(
+        postsData.map(async (post) => {
+          let profileImage = null;
+  
+          if (userImageCache[post.user_id]) {
+            profileImage = userImageCache[post.user_id]; // re-use if already fetched
+          } else {
+            try {
+              const userResponse = await fetch(
+                `http://192.168.1.16:5000/api/auth/id/${post.user_id}`
+              );
+              const userData = await userResponse.json();
+              profileImage = userData.profileImage;
+              userImageCache[post.user_id] = profileImage;
+            } catch (err) {
+              console.warn(`Failed to fetch user for ID: ${post.user_id}`);
+            }
+          }
+  
+          return {
+            ...post,
+            profileImage,
+          };
+        })
+      );
+  
+      setPosts(postsWithProfile);
+      setFilteredPosts(postsWithProfile);
+    } catch (err) {
+      console.error('Failed to fetch posts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
 
   useEffect(() => {
-    if (searchQuery) {
-      const filtered = mockPosts.filter(post => {
-        const user = mockUsers.find(u => u.id === post.userId);
-        return (
-          user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.unit.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.text.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-      });
-      setFilteredPosts(filtered);
-    } else {
-      setFilteredPosts(mockPosts);
-    }
-  }, [searchQuery]);
+    fetchPosts();
+  }, []);
 
-  const renderPost = ({ item }) => {
-    const user = mockUsers.find(u => u.id === item.userId);
-    
-    return (
-      <Card style={styles.postCard}>
-        <Card.Content>
-          <View style={styles.postHeader}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Chat', { 
-                userId: user.id,
-                userName: user.name
-              })}
-            >
-              <Avatar.Image
-                size={40}
-                source={{ uri: user.photo }}
-                style={styles.avatar}
-              />
-            </TouchableOpacity>
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userDetails}>{user.unit} • {user.rank}</Text>
-            </View>
-          </View>
-          
-          <Text style={styles.postText}>{item.text}</Text>
-          
-          {item.comments.length > 0 && (
-            <View style={styles.commentsSection}>
-              <Text style={styles.commentsTitle}>Comments:</Text>
-              {item.comments.map(comment => {
-                const commentUser = mockUsers.find(u => u.id === comment.userId);
-                return (
-                  <View key={comment.id} style={styles.comment}>
-                    <Text style={styles.commentUser}>{commentUser.name}:</Text>
-                    <Text style={styles.commentText}>{comment.text}</Text>
-                  </View>
-                );
-              })}
-            </View>
-          )}
-        </Card.Content>
-      </Card>
-    );
-  };
+  useEffect(() => {
+    if (!searchQuery) {
+      setFilteredPosts(posts);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = posts.filter(
+        (post) =>
+          post.text.toLowerCase().includes(query) ||
+          post.email.toLowerCase().includes(query) ||
+          post.unit?.toLowerCase().includes(query) ||
+          post.proficiency?.toLowerCase().includes(query)
+      );
+      setFilteredPosts(filtered);
+    }
+  }, [searchQuery, posts]);
+
+  const renderPost = ({ item }) => (
+
+    <TouchableOpacity onPress={() => navigation.navigate('PostDetails', { postId: item._id })}>
+    <Card style={styles.card}>
+      <Card.Title
+        title={item.email}
+        subtitle={`${item.unit} | ${item.proficiency}`}
+        left={() => (
+          <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: item.user_id })}>
+          <Image
+            source={{ uri: `${item.profileImage}` }}
+            style={styles.avatar}
+          />
+         </TouchableOpacity>
+        )}
+      />
+      <Card.Content style={styles.cardContent}>
+        <Text style={styles.postText}>{item.text}</Text>
+      </Card.Content>
+    </Card>
+  </TouchableOpacity>
+
+
+    // <Card style={styles.card}>
+    //   <Card.Title
+    //     title={item.email}
+    //     subtitle={`${item.unit} | ${item.proficiency}`}
+    //     left={() => (
+    //         <Image
+    //             source={{
+    //               uri:`${item.profileImage}`,
+    //             }}
+    //             style={styles.avatar}
+    //           />
+    //     )}
+    //   />
+    //   <Card.Content style={styles.cardContent}>
+    //     <Text style={styles.postText}>{item.text}</Text>
+    //   </Card.Content>
+
+    //   <View style={styles.commentSection}>
+    //     <TextInput
+    //       style={styles.commentInput}
+    //       placeholder="Write a comment..."
+    //       value={commentText[item._id] || ''}
+    //       onChangeText={(text) =>
+    //         setCommentText((prev) => ({ ...prev, [item._id]: text }))
+    //       }
+    //     />
+    //     <Button
+    //       mode="text"
+    //       compact
+    //       onPress={() => console.log('Send comment:', commentText[item._id])}
+    //     >
+    //       Post
+    //     </Button>
+    //   </View>
+    // </Card>
+  );
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1 }}>
       <Searchbar
-        placeholder="Search by unit, proficiency, or name"
+        placeholder="Search posts..."
         onChangeText={setSearchQuery}
         value={searchQuery}
-        style={styles.searchBar}
+        style={styles.searchbar}
       />
-      
       <FlatList
         data={filteredPosts}
+        keyExtractor={(item) => item._id}
         renderItem={renderPost}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.feed}
+        contentContainerStyle={styles.container}
+        refreshing={loading}
+        onRefresh={fetchPosts}
       />
     </View>
   );
@@ -90,66 +162,51 @@ const HomeScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    
+    padding: 8,
+    paddingBottom: 100,
   },
-  searchBar: {
-    margin: 16,
-    elevation: 4,
-    marginTop: 60,
-    
+  searchbar: {
+    marginHorizontal: 8,
+    marginTop: 10,
+    marginBottom: 8,
+    borderRadius: 12,
   },
-  feed: {
-    padding: 16,
+  card: {
+    marginBottom: 10,
+    borderRadius: 12,
   },
-  postCard: {
-    marginBottom: 16,
-  },
-  postHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+  cardContent: {
+    paddingBottom: 6,
   },
   avatar: {
-    marginRight: 12,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  userDetails: {
-    fontSize: 14,
-    color: '#666',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   postText: {
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  commentsSection: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  commentsTitle: {
     fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    color: '#333',
   },
-  comment: {
-    marginBottom: 8,
+  commentSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    marginTop: 6,
   },
-  commentUser: {
-    fontSize: 14,
-    fontWeight: 'bold',
+  commentInput: {
+    flex: 1,
+    borderBottomWidth: 1,
+    paddingVertical: 4,
+    marginRight: 10,
   },
-  commentText: {
-    fontSize: 14,
+
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 30,
+    backgroundColor: '#6200ee',
   },
 });
 
-export default HomeScreen; 
+export default HomeScreen;

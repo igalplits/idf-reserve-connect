@@ -1,14 +1,38 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Alert } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // For now, just navigate to Home screen
-    navigation.replace('Home');
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('http://192.168.1.16:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Login Success', `Welcome ${data.user.fullName}`);
+        await AsyncStorage.setItem('token', data.token);
+        await AsyncStorage.setItem('curr_user', JSON.stringify(data.user));
+        await AsyncStorage.setItem('user_id', data.user._id);
+
+        navigation.replace('Main');
+      } else {
+        Alert.alert('Login Failed', data.message || 'Something went wrong');
+      }
+    } catch (error) {
+      console.log('Login error:', error.message);
+      Alert.alert('Login Error', 'Unable to login. Please try again.');
+    }
   };
 
   return (
@@ -97,4 +121,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen; 
+export default LoginScreen;
