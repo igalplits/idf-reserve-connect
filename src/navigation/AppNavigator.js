@@ -37,7 +37,7 @@ const AppNavigator = () => {
           component={AddPostScreen}
         />
         <Stack.Screen 
-          name="Chat" 
+          name="ChatScreen" 
           component={ChatScreen}
           options={({ route }) => ({ 
             title: route.params?.userName || 'Chat',

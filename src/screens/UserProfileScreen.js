@@ -59,7 +59,7 @@ const UserProfileScreen = () => {
       <Button
         mode="contained"
         style={styles.button}
-        onPress={() => navigation.navigate('ChatScreen', { targetUserId: user._id })}
+        onPress={() => navigation.navigate('ChatScreen', {recipientId: userId,recipientImage: user.profileImage, })}
       >
         Start Chat
       </Button>

@@ -11,7 +11,7 @@ const AddPostScreen = ({ navigation }) => {
   const [error, setError] = useState('');
   const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(false);
-  const [userLoaded, setUserLoaded] = useState(false); // ⬅️ this was missing
+  const [userLoaded, setUserLoaded] = useState(false);
 
 
   // Get user email from AsyncStorage or your auth context

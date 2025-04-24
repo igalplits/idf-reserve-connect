@@ -101,43 +101,6 @@ const HomeScreen = () => {
       </Card.Content>
     </Card>
   </TouchableOpacity>
-
-
-    // <Card style={styles.card}>
-    //   <Card.Title
-    //     title={item.email}
-    //     subtitle={`${item.unit} | ${item.proficiency}`}
-    //     left={() => (
-    //         <Image
-    //             source={{
-    //               uri:`${item.profileImage}`,
-    //             }}
-    //             style={styles.avatar}
-    //           />
-    //     )}
-    //   />
-    //   <Card.Content style={styles.cardContent}>
-    //     <Text style={styles.postText}>{item.text}</Text>
-    //   </Card.Content>
-
-    //   <View style={styles.commentSection}>
-    //     <TextInput
-    //       style={styles.commentInput}
-    //       placeholder="Write a comment..."
-    //       value={commentText[item._id] || ''}
-    //       onChangeText={(text) =>
-    //         setCommentText((prev) => ({ ...prev, [item._id]: text }))
-    //       }
-    //     />
-    //     <Button
-    //       mode="text"
-    //       compact
-    //       onPress={() => console.log('Send comment:', commentText[item._id])}
-    //     >
-    //       Post
-    //     </Button>
-    //   </View>
-    // </Card>
   );
 
   return (
